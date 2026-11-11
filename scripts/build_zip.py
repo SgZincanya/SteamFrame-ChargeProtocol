@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FILES = (
     "backend.py", "bluetooth.py", "charging.py", "headphones.py", "overlay.py", "preferences.py", "texture.py",
     "main.js", "plugin.json", "locales.json", "logo.svg", "charging-stopped.wav", "LICENSE", "README.txt",
-    "stopped-en.png", "stopped-zh-Hans.png", "stopped-zh-Hant.png",
+    "stopped-en.png", "stopped-ja.png", "stopped-ko.png", "stopped-zh-Hans.png", "stopped-zh-Hant.png",
     "usb-pd.png", "usb-pd-pps.png", "usb-power-delivery.png", "usb-power-delivery-pps.png",
 )
 

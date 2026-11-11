@@ -14,12 +14,13 @@ Implement a synchronous, bounded `read()` method. Framey calls it off the main e
     "right": 65,
     "case": 48,
     "stale": ["case"],
+    "age_seconds": {"case": 12},
 }
 ```
 
 - `name` is the device name and `connected` is its current connection state.
 - Use `percent` for a device-wide reading. Add `left`, `right`, or `case` for supported component fields.
 - A reading is an integer from `0` to `100`. Use `None` if a supported field has no reading, or omit the field if the device does not support it.
-- If you return an earlier reading, name its field in `stale`. Do not carry readings over to a different physical device.
+- If you return an earlier reading, name its field in `stale`. Include that field in `age_seconds` with the elapsed seconds since its last successful read so the panel can show its age. Do not carry readings over to a different physical device.
 
 The bundled Air 4 SE reader in `headphones.py` provides a reference implementation. Test discovery and parsing with fixtures and verify the reader against the target device before submitting it.

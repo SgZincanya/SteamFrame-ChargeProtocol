@@ -29,7 +29,7 @@
   let menu;
   let saving = false;
   const positions = ['top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right'];
-  const languageNames = { 'zh-Hans': '简体中文', 'zh-Hant': '繁體中文', en: 'English' };
+  const languageNames = { 'zh-Hans': '简体中文', 'zh-Hant': '繁體中文', en: 'English', ja: '日本語', ko: '한국어' };
   const language = () => preferences?.language === 'auto' ? preferences.steam_locale : preferences?.language;
   const translate = (key) => locales?.[language()]?.[key] ?? locales?.en?.[key] ?? key;
   function localizeTab() {
@@ -224,13 +224,16 @@
       const code = String(tag ?? '').toLowerCase();
       if (code === 'tchinese' || /^zh-(tw|hk|mo|hant)/.test(code)) return 'zh-Hant';
       if (code === 'schinese' || code.startsWith('zh')) return 'zh-Hans';
+      if (code === 'japanese' || /^ja(?:-|$)/.test(code)) return 'ja';
+      if (code === 'koreana' || code === 'korean' || /^ko(?:-|$)/.test(code)) return 'ko';
       return 'en';
     };
     try {
       const settings = window.opener?.SteamClient?.Settings ?? window.SteamClient?.Settings;
       if (settings?.GetCurrentLanguage && settings?.GetAvailableLanguages) {
         const [current, available] = await Promise.all([settings.GetCurrentLanguage(), settings.GetAvailableLanguages()]);
-        const code = available?.find((entry) => entry.language === current)?.strShortName;
+        const code = available?.find((entry) => entry.language === current)?.strShortName
+          ?? (typeof current === 'string' ? current : null);
         if (code) return fromTag(code);
       }
     } catch {
@@ -337,7 +340,7 @@
     };
     const root = el('section', 'fc-settings');
     root.lang = language() ?? 'zh-Hans';
-    const status = el('p', 'fc-status', preferences ? '' : '正在加载设置…');
+    const status = el('p', 'fc-status', preferences ? '' : '…');
     status.setAttribute('role', 'status');
     const rows = [];
     if (!preferences || !locales) {
@@ -417,16 +420,21 @@
     headphones.hidden = true;
     details.append(headphones);
     const percentages = new Intl.NumberFormat(language(), { style: 'percent' });
+    const relativeTime = new Intl.RelativeTimeFormat(language(), { numeric: 'always' });
     let headphonesRequest = 0;
     let headphonesTimer;
+    let ageTimer;
     let previousDevices;
 
     function showHeadphones(devices) {
       const snapshot = JSON.stringify(devices);
       if (snapshot === previousDevices) return;
       previousDevices = snapshot;
+      clearTimeout(ageTimer);
       headphones.hidden = devices.length === 0;
       headphones.replaceChildren();
+      const ageLabels = [];
+      const receivedAt = performance.now();
       for (const device of devices) {
         const header = el('div', 'fc-row fc-device-name');
         header.append(el('span', 'fc-copy', device.name));
@@ -437,12 +445,29 @@
           if (!Object.hasOwn(device, part)) continue;
           const row = el('div', 'fc-row');
           const label = el('span', 'fc-copy', translate(`earbud_${part}`));
-          if (device.stale?.includes(part)) label.append(el('span', 'fc-detail', translate('earbud_stale')));
+          if (device.stale?.includes(part)) {
+            const status = el('span', 'fc-detail', translate('earbud_stale'));
+            const age = device.age_seconds?.[part];
+            if (Number.isFinite(age) && age >= 0) ageLabels.push({ status, age });
+            label.append(status);
+          }
           const value = Number.isInteger(device[part]) ? percentages.format(device[part] / 100) : '—';
           row.append(label, el('span', 'fc-reading', value));
           headphones.append(row);
         }
       }
+      if (!ageLabels.length) return;
+
+      function updateAges() {
+        if (!active() || !root.isConnected || !root.getClientRects().length) return;
+        const elapsed = (performance.now() - receivedAt) / 1000;
+        for (const { status, age } of ageLabels) {
+          const time = relativeTime.format(-Math.floor(age + elapsed), 'second');
+          status.textContent = translate('earbud_read_at').replace('{time}', time);
+        }
+        ageTimer = setTimeout(updateAges, 1000);
+      }
+      updateAges();
     }
 
     async function refreshHeadphones() {

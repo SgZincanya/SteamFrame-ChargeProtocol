@@ -11,7 +11,7 @@ from charging import ChargingSample, read_charging, read_details
 from bluetooth import AUDIO_PROFILES, BATTERY, DEVICE, audio_batteries
 from headphones import Air4Reader, FAST_CONNECT, battery_report, connected_air4
 from overlay import FULL_TEXTURES, OpenVROverlay, ProtocolNotice, STOPPED, StopAudio, StopDetector, TEXTURES
-from preferences import DEFAULTS, load, save
+from preferences import DEFAULTS, LOCALES, load, save
 from texture import contract_label
 
 
@@ -283,8 +283,12 @@ class OverlayTests(unittest.TestCase):
                     self.assertEqual(calls[-1][:2], (b"IVROverlay_027", 41))
                     view.hide()
                     self.assertEqual(calls[-1][:2], (b"IVROverlay_027", 42))
-            view.show(STOPPED, {**DEFAULTS, "language": "en", "position": "bottom-right"})
-            self.assertEqual(Path(calls[-2][2][1].decode()).name, "stopped-en.png")
+            for locale, strings in LOCALES.items():
+                self.assertEqual(strings.keys(), LOCALES["en"].keys())
+                view.show(STOPPED, {**DEFAULTS, "language": "auto", "steam_locale": locale, "position": "bottom-right"})
+                path = Path(calls[-2][2][1].decode())
+                self.assertEqual(path.name, f"stopped-{locale}.png")
+                self.assertEqual(path.read_bytes()[:8], b"\x89PNG\r\n\x1a\n")
             self.assertEqual(view.position, "bottom-right")
 
 
@@ -321,13 +325,16 @@ class HeadphoneTests(unittest.TestCase):
         headset = {"Name": "小米 Air4 SE", "Address": "first"}
         with patch("headphones.paired_device", side_effect=[headset, headset, None, {**headset, "Address": "second"}]), \
              patch("headphones.service_channel", return_value=11), \
-             patch("headphones.query", side_effect=[{"left": 100, "right": 80, "case": 62}, {"left": 99, "case": None}, None]):
-            self.assertEqual(reader.read()["stale"], [])
+             patch("headphones.query", side_effect=[{"left": 100, "right": 80, "case": 62}, {"left": 99, "case": None}, None]), \
+             patch("headphones.time.monotonic", side_effect=[10, 22, 25, 30]):
+            self.assertEqual(reader.read()["age_seconds"], {})
             refreshed = reader.read()
             self.assertEqual((refreshed["left"], refreshed["case"], refreshed["stale"]), (99, 62, ["right", "case"]))
+            self.assertEqual(refreshed["age_seconds"], {"right": 12, "case": 12})
             disconnected = reader.read()
             self.assertFalse(disconnected["connected"])
             self.assertEqual(disconnected["stale"], ["left", "right", "case"])
+            self.assertEqual(disconnected["age_seconds"], {"left": 3, "right": 15, "case": 15})
             self.assertIsNone(reader.read()["case"])
 
 

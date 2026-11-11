@@ -99,11 +99,13 @@ class Air4Reader:
         self.last = {}
 
     def result(self, connected, report):
+        now = time.monotonic()
         fresh = {part: value for part, value in (report or {}).items() if value is not None}
-        self.last.update(fresh)
+        self.last.update({part: (value, now) for part, value in fresh.items()})
+        ages = {part: int(now - received_at) for part, (_, received_at) in self.last.items() if part not in fresh}
         return {"name": self.name, "connected": connected,
-                **{part: self.last.get(part) for part in PARTS},
-                "stale": [part for part in self.last if part not in fresh]}
+                **{part: self.last[part][0] if part in self.last else None for part in PARTS},
+                "stale": list(ages), "age_seconds": ages}
 
     def read(self):
         device = paired_device()
