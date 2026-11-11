@@ -407,6 +407,26 @@ class HeadphoneSourceTests(unittest.TestCase):
                     load_settings.return_value = {**DEFAULTS, "headphone_provider": selected}
                     self.assertEqual(self.backend.read_headphones(), [system])
 
+    def test_framey_provider_overrides_manual_copy_and_respects_disabled(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            installed = root / "plugins" / "fcp-provider-example-buds"
+            installed.mkdir(parents=True)
+            (installed / "plugin.json").write_text("{}", encoding="utf-8")
+            module = installed / "example-buds.py"
+            module.touch()
+            manual = root / "example-buds.py"
+            manual.touch()
+            settings = root / "settings.json"
+            with patch.object(self.backend, "PROVIDER_DIR", root), \
+                 patch.object(self.backend, "PLUGINS_DIR", installed.parent), \
+                 patch.object(self.backend, "FRAMEY_SETTINGS", settings):
+                self.assertEqual(self.backend.provider_paths(), {"example-buds": module})
+                settings.write_text('{"disabled":["fcp-provider-example-buds"]}', encoding="utf-8")
+                self.assertEqual(self.backend.provider_ids(), ["bluez"])
+                module.unlink()
+                self.assertEqual(self.backend.provider_paths(), {"example-buds": manual})
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

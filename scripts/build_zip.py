@@ -14,8 +14,8 @@ FILES = (
     "case-low-en.png", "case-low-ja.png", "case-low-ko.png", "case-low-zh-Hans.png", "case-low-zh-Hant.png",
     "usb-pd.png", "usb-pd-pps.png", "usb-power-delivery.png", "usb-power-delivery-pps.png",
 )
-AIR4_SE_VERSION = "1.0.0"
 AIR4_SE_FILES = (
+    ("providers/air4-se/plugin.json", "plugin.json"),
     ("providers/air4-se/air4-se.py", "air4-se.py"),
     ("providers/air4-se/README.md", "README.md"),
     ("LICENSE", "LICENSE"),
@@ -27,7 +27,8 @@ def main():
     parser.add_argument("--air4-se", action="store_true", help="Build only the optional Air 4 SE provider.")
     args = parser.parse_args()
     if args.air4_se:
-        name = f"Air4-SE-Provider-v{AIR4_SE_VERSION}.zip"
+        version = json.loads((ROOT / "providers/air4-se/plugin.json").read_text(encoding="utf-8"))["version"]
+        name = f"Air4-SE-Provider-v{version}.zip"
         files = AIR4_SE_FILES
     else:
         version = json.loads((ROOT / "plugin.json").read_text(encoding="utf-8"))["version"]

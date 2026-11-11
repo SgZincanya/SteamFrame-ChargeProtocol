@@ -1,4 +1,4 @@
-Steam Frame 充电协议插件 0.9.2
+Steam Frame 充电协议插件 0.9.3
 
 安装与设置
 手动安装时，可在 Framey App 中选择 Add plugin 并导入整个 ZIP。Framey App 安装成功后会重启运行中的 SteamVR。

@@ -14,7 +14,7 @@ Steam Frame 的 Framey 插件。插线后在头显内显示已确认的 USB PD �
 2. 把下面的插件 ZIP 下载地址粘贴到输入框，点击 **Install**。
 
    ```text
-   https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases/download/v0.9.2/SteamFrame-ChargeProtocol-v0.9.2.zip
+   https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases/download/v0.9.3/SteamFrame-ChargeProtocol-v0.9.3.zip
    ```
 
 3. 安装成功后，在 Framey 中打开 **充电协议**。要安装其他版本，在 [Releases](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases) 复制对应插件 ZIP 的下载地址。
@@ -27,7 +27,7 @@ Steam Frame 的 Framey 插件。插线后在头显内显示已确认的 USB PD �
 
 公开安装包默认使用 **系统蓝牙**，无需配置。详情页读取 SteamOS 的 BlueZ 服务已上报的蓝牙音频设备电量。设备上报一个百分比时就显示一个，BlueZ 上报独立部件时则显示对应部件。手柄不在读取范围内。
 
-主插件安装包只带系统蓝牙。小米 Air 4 SE 的左右耳和充电盒分项读取可单独安装。安装模块后，在 **蓝牙电量来源** 选择 `air4-se`，也可随时切回系统蓝牙。[Air 4 SE 模块构建与安装](providers/air4-se/README.md) · [耳机电量扩展接口](docs/headphone-providers.md)
+主插件安装包只带系统蓝牙。升级主插件后，可复制 Air 4 SE 模块 ZIP 的下载地址，粘贴到 **Framey → Settings** 安装。安装后，在 **充电协议 → 蓝牙电量来源** 选择 `air4-se`。[模块 ZIP](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases/download/v0.9.3/Air4-SE-Provider-v1.1.0.zip) · [模块构建与安装](providers/air4-se/README.md) · [扩展接口](docs/headphone-providers.md)
 
 支持上报充电盒电量的设备可使用 **充电盒低电量提醒**。插件在后台定期查询，收到低于 20% 的新读数时在头显内提示一次。回升到 20% 或以上后可以再次提醒。设备没有上报电量时沿用上次读数的时间标记。
 
@@ -52,11 +52,11 @@ python scripts/build_zip.py
 
 A Framey plugin for Steam Frame that shows the negotiated USB PD/PPS contract in VR, with battery-side power in the details panel. Controls for the slow-charger dialog, its sound, and charging-stop notifications are independent.
 
-**Install in the headset.** Open **Framey → Settings**, paste the [direct plugin ZIP URL](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases/download/v0.9.2/SteamFrame-ChargeProtocol-v0.9.2.zip), and select **Install**. Then open **Charging Protocol** in Framey. For another version, copy its plugin ZIP URL from [Releases](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases).
+**Install in the headset.** Open **Framey → Settings**, paste the [direct plugin ZIP URL](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases/download/v0.9.3/SteamFrame-ChargeProtocol-v0.9.3.zip), and select **Install**. Then open **Charging Protocol** in Framey. For another version, copy its plugin ZIP URL from [Releases](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases).
 
 You can also download the ZIP and select it with **Add plugin** in the desktop [Framey App](https://github.com/chaosfox26/framey-app). Framey App restarts SteamVR if it is running.
 
-The panel supports Simplified Chinese, Traditional Chinese, English, Japanese, and Korean. The main ZIP includes system Bluetooth battery reporting. The Xiaomi Air 4 SE provider installs separately. Once installed, select `air4-se` under **Bluetooth Battery Source**. [Build and install the Air 4 SE provider](providers/air4-se/README.md) · [Provider interface](docs/headphone-providers.md)
+The panel supports Simplified Chinese, Traditional Chinese, English, Japanese, and Korean. The main ZIP includes system Bluetooth battery reporting. After updating the main plugin, paste the optional Air 4 SE module's ZIP URL into **Framey → Settings**, then select `air4-se` under **Bluetooth Battery Source**. [Provider ZIP](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases/download/v0.9.3/Air4-SE-Provider-v1.1.0.zip) · [Build and install the provider](providers/air4-se/README.md) · [Provider interface](docs/headphone-providers.md)
 
 **Low charging case battery alert** checks supported case batteries in the background and shows a headset overlay on a fresh reading below 20%. The alert re-arms after a fresh reading of 20% or more.
 

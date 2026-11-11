@@ -4,6 +4,7 @@ import asyncio
 import base64
 from functools import lru_cache
 from importlib.util import module_from_spec, spec_from_file_location
+import json
 from pathlib import Path
 import sys
 import time
@@ -23,6 +24,9 @@ history_spec = spec_from_file_location("frame_charge_history", WORKER.with_name(
 history = module_from_spec(history_spec)
 history_spec.loader.exec_module(history)
 PROVIDER_DIR = preferences.PATH.parent / "frame-charge-protocol-providers"
+PLUGINS_DIR = WORKER.parent.parent
+FRAMEY_SETTINGS = preferences.PATH.with_name("settings.json")
+PROVIDER_PREFIX = "fcp-provider-"
 headphones_lock = asyncio.Lock()
 logo = "data:image/svg+xml;base64," + base64.b64encode(WORKER.with_name("logo.svg").read_bytes()).decode("ascii")
 supervisor = None
@@ -107,11 +111,32 @@ async def supervise():
             await asyncio.sleep(3)
 
 
-def provider_ids():
-    return ["bluez", *sorted(
-        path.stem for path in PROVIDER_DIR.glob("*.py")
+def provider_paths():
+    paths = {
+        path.stem: path for path in PROVIDER_DIR.glob("*.py")
         if path.is_file() and path.stem != "bluez" and preferences.valid("headphone_provider", path.stem)
-    )]
+    }
+    try:
+        settings = json.loads(FRAMEY_SETTINGS.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        settings = {}
+    disabled = settings.get("disabled") if isinstance(settings, dict) else None
+    disabled = disabled if isinstance(disabled, list) else []
+    for folder in PLUGINS_DIR.glob(f"{PROVIDER_PREFIX}*"):
+        provider = folder.name.removeprefix(PROVIDER_PREFIX)
+        if provider == "bluez" or not preferences.valid("headphone_provider", provider):
+            continue
+        path = folder / f"{provider}.py"
+        if path.is_file() and (folder / "plugin.json").is_file():
+            # The Framey installation controls this ID while installed.
+            paths.pop(provider, None)
+            if folder.name not in disabled:
+                paths[provider] = path
+    return paths
+
+
+def provider_ids():
+    return ["bluez", *sorted(provider_paths())]
 
 
 @lru_cache(maxsize=8)
@@ -125,8 +150,8 @@ def load_provider(path):
 def read_headphones():
     selected = preferences.load()["headphone_provider"]
     if selected != "bluez":
-        path = PROVIDER_DIR / f"{selected}.py"
-        if path.is_file():
+        path = provider_paths().get(selected)
+        if path is not None:
             try:
                 device = load_provider(path)()
                 if isinstance(device, dict) and any(
