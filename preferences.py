@@ -14,7 +14,7 @@ DEFAULTS = {
     "hide_slow_popup": True, "mute_slow_sound": True, "show": True, "seconds": 5,
     "fade": True, "full_name": True, "show_watts": True, "stop_popup": True, "stop_sound": True,
     "position": "top", "language": "auto", "steam_locale": "zh-Hans", "headphone_provider": "bluez",
-    "record_history": False, "history_limit": 25,
+    "record_history": False, "history_limit": 25, "case_low_popup": True,
 }
 
 

@@ -429,6 +429,7 @@
     const headphones = el('div', 'fc-headphones');
     headphones.hidden = true;
     details.append(headphones);
+    toggle(details, 'case_low_popup');
     const percentages = new Intl.NumberFormat(language(), { style: 'percent' });
     const relativeTime = new Intl.RelativeTimeFormat(language(), { numeric: 'always' });
     let headphonesRequest = 0;

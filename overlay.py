@@ -23,6 +23,7 @@ VR_LIBRARY = "/opt/steamvr/bin/linuxarm64/libopenvr_api.so"
 TEXTURES = {"USB PD": "usb-pd.png", "USB PD PPS": "usb-pd-pps.png"}
 FULL_TEXTURES = {"USB PD": ("usb-power-delivery.png", 0.46), "USB PD PPS": ("usb-power-delivery-pps.png", 0.51)}
 STOPPED = "stopped"
+CASE_LOW = "case-low"
 FADE_SECONDS = 0.45
 FADE_INTERVAL = 1 / 30
 SAMPLE_SECONDS = 0.25
@@ -186,7 +187,7 @@ class ProtocolNotice:
         self.sound.update(now, settings["stop_sound"])
 
         if sample.connected is False:
-            if self.visible != STOPPED:
+            if self.visible not in (STOPPED, CASE_LOW):
                 self.hide(view)
             self.candidate = None
             self.last_shown = None
@@ -196,10 +197,10 @@ class ProtocolNotice:
         fixed = sample.protocol == "USB PD"
         self.candidate = (sample.protocol, sample.voltage_mv if fixed else None, sample.current_ma if fixed else None)
         if not settings["show"]:
-            if self.visible != STOPPED:
+            if self.visible not in (STOPPED, CASE_LOW):
                 self.hide(view)
             return
-        if self.visible == STOPPED or self.stop_pending:
+        if self.visible in (STOPPED, CASE_LOW) or self.stop_pending:
             return
         if not sample.protocol or self.candidate != previous or sample.protocol == self.last_shown:
             return
@@ -311,15 +312,16 @@ class OpenVROverlay:
         self.position = position
 
     def show(self, protocol, settings, watts=None):
-        if protocol == STOPPED:
-            filename, width = f"stopped-{language(settings)}.png", 0.43
+        if protocol in (STOPPED, CASE_LOW):
+            filename = f"{protocol}-{language(settings)}.png"
+            width = 0.56 if protocol == CASE_LOW else 0.43
         elif settings["full_name"]:
             filename, width = FULL_TEXTURES[protocol]
         else:
             filename, width = TEXTURES[protocol], 0.28
         path = Path(__file__).resolve().with_name(filename)
         label = protocol
-        if protocol != STOPPED and settings["show_watts"] and watts is not None:
+        if protocol not in (STOPPED, CASE_LOW) and settings["show_watts"] and watts is not None:
             try:
                 if self.textures is None:
                     self.textures = TemporaryDirectory(prefix="frame-charge-")
@@ -360,6 +362,7 @@ def run():
     sample_at = 0.0
     last_error = None
     history_error = None
+    case_pending_until = 0.0
     try:
         while True:
             now = time.monotonic()
@@ -375,12 +378,21 @@ def run():
                         if str(error) != history_error:
                             print(f"[frame-charge-protocol] history: {error}", file=sys.stderr, flush=True)
                             history_error = str(error)
-                    need_overlay = (settings["show"] and sample.protocol) or (settings["stop_popup"] and notice.stop_pending)
+                    if not settings["case_low_popup"]:
+                        case_pending_until = 0.0
+                        if notice.visible == CASE_LOW:
+                            notice.hide(view)
+                    case_pending = now < case_pending_until
+                    need_overlay = ((settings["show"] and sample.protocol)
+                                    or (settings["stop_popup"] and notice.stop_pending) or case_pending)
                     if view is None and need_overlay and now >= retry_at:
                         view = OpenVROverlay()
                     if view is not None and not view.connected(0):
                         raise RuntimeError("SteamVR headset unavailable")
                     notice.update(sample, view, settings=settings)
+                    if case_pending and not notice.stop_pending and notice.visible is None and view is not None and view.is_in_use():
+                        notice.present(view, CASE_LOW, settings, time.monotonic)
+                        case_pending_until = 0.0
                     if view is not None and notice.visible is not None:
                         view.set_position(settings["position"])
                 delay = notice.animate(view, time.monotonic())
@@ -399,8 +411,12 @@ def run():
 
             # Framey closes this pipe on unload. It also closes if Framey exits.
             delay = min(delay, max(0.0, sample_at - time.monotonic()))
-            if select.select([sys.stdin], [], [], delay)[0] and not os.read(sys.stdin.fileno(), 1):
-                return
+            if select.select([sys.stdin], [], [], delay)[0]:
+                commands = os.read(sys.stdin.fileno(), 64)
+                if not commands:
+                    return
+                if b"c" in commands:
+                    case_pending_until = time.monotonic() + 30
     finally:
         notice.sound.close()
         if view is not None:

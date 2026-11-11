@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from charging import ChargingSample, read_charging, read_details
 from bluetooth import AUDIO_PROFILES, BATTERY, DEVICE, audio_batteries
 import history
-from overlay import FULL_TEXTURES, OpenVROverlay, ProtocolNotice, STOPPED, StopAudio, StopDetector, TEXTURES
+from overlay import CASE_LOW, FULL_TEXTURES, OpenVROverlay, ProtocolNotice, STOPPED, StopAudio, StopDetector, TEXTURES
 from preferences import DEFAULTS, LOCALES, load, save
 from texture import contract_label
 
@@ -319,11 +319,21 @@ class OverlayTests(unittest.TestCase):
                     self.assertEqual(calls[-1][:2], (b"IVROverlay_027", 42))
             for locale, strings in LOCALES.items():
                 self.assertEqual(strings.keys(), LOCALES["en"].keys())
-                view.show(STOPPED, {**DEFAULTS, "language": "auto", "steam_locale": locale, "position": "bottom-right"})
-                path = Path(calls[-2][2][1].decode())
-                self.assertEqual(path.name, f"stopped-{locale}.png")
-                self.assertEqual(path.read_bytes()[:8], b"\x89PNG\r\n\x1a\n")
+                for notice in (STOPPED, CASE_LOW):
+                    view.show(notice, {**DEFAULTS, "language": "auto", "steam_locale": locale, "position": "bottom-right"})
+                    path = Path(calls[-2][2][1].decode())
+                    self.assertEqual(path.name, f"{notice}-{locale}.png")
+                    self.assertEqual(path.read_bytes()[:8], b"\x89PNG\r\n\x1a\n")
             self.assertEqual(view.position, "bottom-right")
+
+    def test_case_alert_stays_visible_when_headset_is_unplugged(self):
+        notice = ProtocolNotice()
+        view = View()
+        notice.present(view, CASE_LOW, DEFAULTS, lambda: 10)
+        notice.update(ChargingSample(connected=False), view, lambda: 11, DEFAULTS)
+        self.assertEqual(notice.visible, CASE_LOW)
+        notice.animate(view, 15)
+        self.assertIsNone(notice.visible)
 
 
 class HeadphoneTests(unittest.TestCase):
@@ -346,6 +356,22 @@ class HeadphoneSourceTests(unittest.TestCase):
         spec = spec_from_file_location("test_frame_charge_backend", path)
         self.backend = module_from_spec(spec)
         spec.loader.exec_module(self.backend)
+
+    def test_case_alert_uses_fresh_values_and_rearms_at_twenty(self):
+        device = {"name": "Example buds", "connected": True, "case": 19}
+        with patch.object(self.backend.time, "monotonic", return_value=100):
+            for reading in ({**device, "case": 20}, {**device, "stale": ["case"]},
+                            {**device, "connected": False}, {**device, "case": None}):
+                self.backend.observe_case_levels([reading])
+                self.assertEqual(self.backend.case_alert_until, 0)
+            self.backend.observe_case_levels([device])
+            self.assertEqual(self.backend.case_alert_until, 130)
+            self.backend.case_alert_until = 0
+            self.backend.observe_case_levels([device])
+            self.assertEqual(self.backend.case_alert_until, 0)
+            self.backend.observe_case_levels([{**device, "case": 20}])
+            self.backend.observe_case_levels([device])
+            self.assertEqual(self.backend.case_alert_until, 130)
 
     def test_provider_is_only_loaded_when_selected(self):
         system = {"name": "System audio", "connected": True, "percent": 85}
