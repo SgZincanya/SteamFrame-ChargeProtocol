@@ -6,9 +6,22 @@ Steam Frame 的 Framey 插件。插线后在头显内显示已确认的 USB PD �
 
 ## 安装
 
-1. 在 Steam Frame 上安装 [Framey](https://github.com/chaosfox26/framey)。
-2. 从 [Releases](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases) 下载插件 ZIP。在电脑的 [Framey App](https://github.com/chaosfox26/framey-app) 中点击 **Add plugin**，选择整个 ZIP。Framey App 会重启正在运行的 SteamVR。
-3. 在头显里打开 **Framey → 充电协议**。
+请先在 Steam Frame 上安装 [Framey](https://github.com/chaosfox26/framey)。
+
+### 在头显里用链接安装
+
+1. 打开 **Framey → Settings**。
+2. 把下面的插件 ZIP 下载地址粘贴到输入框，点击 **Install**。
+
+   ```text
+   https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases/download/v0.7.0/SteamFrame-ChargeProtocol-v0.7.0.zip
+   ```
+
+3. 安装成功后，在 Framey 中打开 **充电协议**。要安装其他版本，在 [Releases](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases) 复制对应插件 ZIP 的下载地址。
+
+### 用电脑安装 ZIP
+
+从 [Releases](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases) 下载插件 ZIP。在电脑的 [Framey App](https://github.com/chaosfox26/framey-app) 中点击 **Add plugin**，选择整个 ZIP，无需解压。Framey App 会重启正在运行的 SteamVR。
 
 ## 蓝牙耳机电量
 
@@ -31,7 +44,11 @@ python scripts/build_zip.py
 
 A Framey plugin for Steam Frame that shows the negotiated USB PD/PPS contract in VR, with battery-side power in the details panel. Controls for the slow-charger dialog, its sound, and charging-stop notifications are independent.
 
-Download the plugin ZIP from [Releases](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases), import it with **Add plugin** in Framey App, and open **Charging Protocol** in Framey. System Bluetooth battery reporting is the default and requires no setup. The Xiaomi Air 4 SE component reader is opt-in. See the [provider interface](docs/headphone-providers.md) to add support for another device.
+**Install in the headset.** Open **Framey → Settings**, paste the [direct plugin ZIP URL](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases/download/v0.7.0/SteamFrame-ChargeProtocol-v0.7.0.zip), and select **Install**. Then open **Charging Protocol** in Framey. For another version, copy its plugin ZIP URL from [Releases](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases).
+
+You can also download the ZIP and select it with **Add plugin** in the desktop [Framey App](https://github.com/chaosfox26/framey-app). Framey App restarts SteamVR if it is running.
+
+System Bluetooth battery reporting is the default and requires no setup. The Xiaomi Air 4 SE component reader is opt-in. See the [provider interface](docs/headphone-providers.md) to add support for another device.
 
 ## 授权与参考 · License and references
 
