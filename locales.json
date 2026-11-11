@@ -1,0 +1,35 @@
+{
+  "zh-Hans": {
+    "title": "充电协议", "system": "慢充提醒", "hide_slow_popup": "隐藏慢充弹窗", "mute_slow_sound": "关闭慢充提示音",
+    "overlay": "头显浮层", "show": "显示充电协议", "full_name": "显示完整名称", "duration": "显示时长", "seconds": "{n} 秒",
+    "fade": "淡出", "show_watts": "浮层显示协商功率", "position": "浮层位置", "positions": ["左上", "上方", "右上", "左侧", "居中", "右侧", "左下", "下方", "右下"],
+    "details": "充电详情", "protocol": "当前协议", "contract_power": "协商功率", "battery_power": "电池净功率", "disconnected": "未接电",
+    "earbud_left": "左耳", "earbud_right": "右耳", "earbud_case": "充电盒",
+    "earbud_stale": "上次读数", "earbud_disconnected": "未连接",
+    "headphone_source": "蓝牙电量来源", "headphone_bluez": "系统蓝牙", "headphone_air4-se": "小米 Air 4 SE 分项",
+    "stopped": "停止充电", "stop_popup": "显示停止充电浮层", "stop_sound": "播放停止充电提示音",
+    "language": "语言", "auto": "跟随 Steam", "loading": "正在加载设置…", "saved": "已保存", "error": "保存失败，请重试"
+  },
+  "zh-Hant": {
+    "title": "充電協定", "system": "慢充提醒", "hide_slow_popup": "隱藏慢充視窗", "mute_slow_sound": "關閉慢充提示音",
+    "overlay": "頭戴顯示器浮層", "show": "顯示充電協定", "full_name": "顯示完整名稱", "duration": "顯示時間", "seconds": "{n} 秒",
+    "fade": "淡出", "show_watts": "浮層顯示協商功率", "position": "浮層位置", "positions": ["左上", "上方", "右上", "左側", "置中", "右側", "左下", "下方", "右下"],
+    "details": "充電詳細資訊", "protocol": "目前協定", "contract_power": "協商功率", "battery_power": "電池淨功率", "disconnected": "未接電",
+    "earbud_left": "左耳", "earbud_right": "右耳", "earbud_case": "充電盒",
+    "earbud_stale": "上次讀數", "earbud_disconnected": "未連線",
+    "headphone_source": "藍牙電量來源", "headphone_bluez": "系統藍牙", "headphone_air4-se": "小米 Air 4 SE 分項",
+    "stopped": "停止充電", "stop_popup": "顯示停止充電浮層", "stop_sound": "播放停止充電提示音",
+    "language": "語言", "auto": "跟隨 Steam", "loading": "正在載入設定…", "saved": "已儲存", "error": "儲存失敗，請再試一次"
+  },
+  "en": {
+    "title": "Charging Protocol", "system": "Slow Charger", "hide_slow_popup": "Hide slow charger dialog", "mute_slow_sound": "Mute slow charger sound",
+    "overlay": "Headset Overlay", "show": "Show charging protocol", "full_name": "Use full protocol names", "duration": "Display time", "seconds": "{n} s",
+    "fade": "Fade out", "show_watts": "Show negotiated watts in overlay", "position": "Overlay position", "positions": ["Top left", "Top", "Top right", "Left", "Center", "Right", "Bottom left", "Bottom", "Bottom right"],
+    "details": "Charging Details", "protocol": "Current protocol", "contract_power": "Negotiated power", "battery_power": "Net battery power", "disconnected": "Unplugged",
+    "earbud_left": "Left earbud", "earbud_right": "Right earbud", "earbud_case": "Charging case",
+    "earbud_stale": "Last reading", "earbud_disconnected": "Disconnected",
+    "headphone_source": "Bluetooth Battery Source", "headphone_bluez": "System Bluetooth", "headphone_air4-se": "Xiaomi Air 4 SE components",
+    "stopped": "Charging stopped", "stop_popup": "Show charging stopped overlay", "stop_sound": "Play charging stopped sound",
+    "language": "Language", "auto": "Follow Steam", "loading": "Loading settings…", "saved": "Saved", "error": "Could not save. Try again."
+  }
+}

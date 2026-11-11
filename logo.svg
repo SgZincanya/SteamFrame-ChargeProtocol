@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">红色电池与蓝色充电宝</title>
+  <defs>
+    <mask id="behind-bank" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128">
+      <path fill="white" d="M0 0h128v128H0z"/>
+      <rect x="9" y="13" width="70" height="79" rx="20" fill="black"/>
+    </mask>
+  </defs>
+  <g mask="url(#behind-bank)" fill="none" stroke="#F24D56" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="46" y="69" width="62" height="37" rx="9"/>
+    <path d="M108 82h6q3 0 3 3v5q0 3-3 3h-6M87 81v14"/>
+  </g>
+  <g fill="none" stroke="#2389F4" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="16" y="20" width="56" height="65" rx="13"/>
+    <path d="M38 30h12M31 72h2m10 0h2m10 0h2"/>
+  </g>
+</svg>
