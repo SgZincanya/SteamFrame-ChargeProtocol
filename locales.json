@@ -1,5 +1,9 @@
 {
   "zh-Hans": {
+    "record_history": "记录电池", "history_title": "供电记录", "history_open": "查看记录", "history_back": "返回设置",
+    "history_limit": "最多记录多少条", "history_clear": "清除记录", "history_cancel": "取消", "history_confirm": "清除所有已完成的记录？",
+    "history_records": "记录", "history_empty": "暂无记录。插入并断开一次电源后，这里会显示记录。",
+    "history_start": "插入 {time}", "history_end": "断开 {time}", "history_cleared": "已清除记录", "history_error": "无法读取或清除记录，请重试",
     "title": "充电协议", "system": "慢充提醒", "hide_slow_popup": "隐藏慢充弹窗", "mute_slow_sound": "关闭慢充提示音",
     "overlay": "头显浮层", "show": "显示充电协议", "full_name": "显示完整名称", "duration": "显示时长", "seconds": "{n} 秒",
     "fade": "淡出", "show_watts": "浮层显示协商功率", "position": "浮层位置", "positions": ["左上", "上方", "右上", "左侧", "居中", "右侧", "左下", "下方", "右下"],
@@ -11,6 +15,10 @@
     "language": "语言", "auto": "跟随 Steam", "loading": "正在加载设置…", "saved": "已保存", "error": "保存失败，请重试"
   },
   "zh-Hant": {
+    "record_history": "記錄電池", "history_title": "供電記錄", "history_open": "查看記錄", "history_back": "返回設定",
+    "history_limit": "最多保留幾筆", "history_clear": "清除記錄", "history_cancel": "取消", "history_confirm": "清除所有已完成的記錄？",
+    "history_records": "記錄", "history_empty": "目前沒有記錄。接上再拔除電源後，這裡會顯示記錄。",
+    "history_start": "接上 {time}", "history_end": "拔除 {time}", "history_cleared": "已清除記錄", "history_error": "無法讀取或清除記錄，請再試一次",
     "title": "充電協定", "system": "慢充提醒", "hide_slow_popup": "隱藏慢充視窗", "mute_slow_sound": "關閉慢充提示音",
     "overlay": "頭戴顯示器浮層", "show": "顯示充電協定", "full_name": "顯示完整名稱", "duration": "顯示時間", "seconds": "{n} 秒",
     "fade": "淡出", "show_watts": "浮層顯示協商功率", "position": "浮層位置", "positions": ["左上", "上方", "右上", "左側", "置中", "右側", "左下", "下方", "右下"],
@@ -22,6 +30,10 @@
     "language": "語言", "auto": "跟隨 Steam", "loading": "正在載入設定…", "saved": "已儲存", "error": "儲存失敗，請再試一次"
   },
   "en": {
+    "record_history": "Log battery use", "history_title": "Power History", "history_open": "View history", "history_back": "Back to settings",
+    "history_limit": "Maximum records", "history_clear": "Clear history", "history_cancel": "Cancel", "history_confirm": "Clear all completed sessions?",
+    "history_records": "Sessions", "history_empty": "No sessions yet. Connect and disconnect a power source to record one.",
+    "history_start": "Connected {time}", "history_end": "Disconnected {time}", "history_cleared": "History cleared", "history_error": "Could not read or clear history. Try again.",
     "title": "Charging Protocol", "system": "Slow Charger", "hide_slow_popup": "Hide slow charger dialog", "mute_slow_sound": "Mute slow charger sound",
     "overlay": "Headset Overlay", "show": "Show charging protocol", "full_name": "Use full protocol names", "duration": "Display time", "seconds": "{n} s",
     "fade": "Fade out", "show_watts": "Show negotiated watts in overlay", "position": "Overlay position", "positions": ["Top left", "Top", "Top right", "Left", "Center", "Right", "Bottom left", "Bottom", "Bottom right"],
@@ -33,6 +45,10 @@
     "language": "Language", "auto": "Follow Steam", "loading": "Loading settings…", "saved": "Saved", "error": "Could not save. Try again."
   },
   "ja": {
+    "record_history": "バッテリーの使用を記録", "history_title": "給電履歴", "history_open": "履歴を表示", "history_back": "設定に戻る",
+    "history_limit": "保存件数の上限", "history_clear": "履歴を消去", "history_cancel": "キャンセル", "history_confirm": "完了した記録をすべて消去しますか？",
+    "history_records": "記録", "history_empty": "記録はありません。電源を接続してから取り外すと記録されます。",
+    "history_start": "接続 {time}", "history_end": "取り外し {time}", "history_cleared": "履歴を消去しました", "history_error": "履歴を読み込むか消去できませんでした。もう一度お試しください。",
     "title": "充電プロトコル", "system": "低速充電の通知", "hide_slow_popup": "低速充電の警告を非表示", "mute_slow_sound": "低速充電の通知音を消す",
     "overlay": "ヘッドセットのオーバーレイ", "show": "充電プロトコルを表示", "full_name": "プロトコルの正式名称を表示", "duration": "表示時間", "seconds": "{n} 秒",
     "fade": "フェードアウト", "show_watts": "オーバーレイに交渉電力を表示", "position": "表示位置", "positions": ["左上", "上", "右上", "左", "中央", "右", "左下", "下", "右下"],
@@ -44,6 +60,10 @@
     "language": "言語", "auto": "Steam に合わせる", "loading": "設定を読み込み中…", "saved": "保存しました", "error": "保存できませんでした。もう一度お試しください。"
   },
   "ko": {
+    "record_history": "배터리 사용 기록", "history_title": "전원 연결 기록", "history_open": "기록 보기", "history_back": "설정으로 돌아가기",
+    "history_limit": "최대 보관 건수", "history_clear": "기록 지우기", "history_cancel": "취소", "history_confirm": "완료된 기록을 모두 지울까요?",
+    "history_records": "기록", "history_empty": "아직 기록이 없습니다. 전원을 연결했다가 분리하면 기록됩니다.",
+    "history_start": "연결 {time}", "history_end": "분리 {time}", "history_cleared": "기록을 지웠습니다", "history_error": "기록을 읽거나 지우지 못했습니다. 다시 시도해 주세요.",
     "title": "충전 프로토콜", "system": "저속 충전 알림", "hide_slow_popup": "저속 충전 경고 숨기기", "mute_slow_sound": "저속 충전 알림음 끄기",
     "overlay": "헤드셋 오버레이", "show": "충전 프로토콜 표시", "full_name": "프로토콜 전체 이름 표시", "duration": "표시 시간", "seconds": "{n}초",
     "fade": "서서히 사라지기", "show_watts": "오버레이에 협상 전력 표시", "position": "오버레이 위치", "positions": ["왼쪽 위", "위", "오른쪽 위", "왼쪽", "가운데", "오른쪽", "왼쪽 아래", "아래", "오른쪽 아래"],

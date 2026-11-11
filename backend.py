@@ -20,6 +20,9 @@ headphones_spec.loader.exec_module(headphones)
 bluetooth_spec = spec_from_file_location("frame_charge_bluetooth", WORKER.with_name("bluetooth.py"))
 bluetooth = module_from_spec(bluetooth_spec)
 bluetooth_spec.loader.exec_module(bluetooth)
+history_spec = spec_from_file_location("frame_charge_history", WORKER.with_name("history.py"))
+history = module_from_spec(history_spec)
+history_spec.loader.exec_module(history)
 HEADPHONE_PROVIDERS = {"air4-se": headphones.Air4Reader()}
 headphones_lock = asyncio.Lock()
 logo = "data:image/svg+xml;base64," + base64.b64encode(WORKER.with_name("logo.svg").read_bytes()).decode("ascii")
@@ -75,9 +78,18 @@ async def call(method, arg):
         if supervisor is None or supervisor.done():
             supervisor = asyncio.create_task(supervise())
         return {"ok": True, "settings": preferences.load(), "locales": preferences.LOCALES, "logo": logo,
-                "headphone_providers": ["bluez", *HEADPHONE_PROVIDERS]}
+                "headphone_providers": ["bluez", *HEADPHONE_PROVIDERS], "history_limits": preferences.HISTORY_LIMITS}
     if method == "save" and isinstance(arg, dict):
-        return {"settings": preferences.save(arg.get("key"), arg.get("value"))}
+        key = arg.get("key")
+        settings = preferences.save(key, arg.get("value"))
+        if key == "history_limit":
+            await asyncio.to_thread(history.prune, settings["history_limit"])
+        return {"settings": settings}
+    if method == "history":
+        return {"sessions": await asyncio.to_thread(history.sessions, preferences.load()["history_limit"])}
+    if method == "clear_history":
+        await asyncio.to_thread(history.clear)
+        return {"sessions": []}
     if method == "details":
         return charging.read_details()
     if method == "headphones":

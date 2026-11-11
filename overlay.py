@@ -7,12 +7,14 @@ import os
 from pathlib import Path
 import select
 import shutil
+import sqlite3
 import subprocess
 import sys
 from tempfile import TemporaryDirectory
 import time
 
 from charging import read_charging
+from history import Recorder
 from preferences import DEFAULTS, language, load as load_preferences
 from texture import contract_label, render_contract_texture
 
@@ -352,10 +354,12 @@ class OpenVROverlay:
 
 def run():
     notice = ProtocolNotice()
+    recorder = Recorder()
     view = None
     retry_at = 0.0
     sample_at = 0.0
     last_error = None
+    history_error = None
     try:
         while True:
             now = time.monotonic()
@@ -364,6 +368,13 @@ def run():
                     sample_at = now + SAMPLE_SECONDS
                     settings = load_preferences()
                     sample = read_charging()
+                    try:
+                        recorder.update(sample.connected, settings)
+                        history_error = None
+                    except (OSError, sqlite3.Error) as error:
+                        if str(error) != history_error:
+                            print(f"[frame-charge-protocol] history: {error}", file=sys.stderr, flush=True)
+                            history_error = str(error)
                     need_overlay = (settings["show"] and sample.protocol) or (settings["stop_popup"] and notice.stop_pending)
                     if view is None and need_overlay and now >= retry_at:
                         view = OpenVROverlay()

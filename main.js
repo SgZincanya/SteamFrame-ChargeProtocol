@@ -27,6 +27,7 @@
   let hook;
   let modalAudio;
   let menu;
+  let historyLimits = [10, 25, 50, 100];
   let saving = false;
   const positions = ['top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right'];
   const languageNames = { 'zh-Hans': '简体中文', 'zh-Hant': '繁體中文', en: 'English', ja: '日本語', ko: '한국어' };
@@ -251,6 +252,7 @@
         locales = reply.locales;
         logo = reply.logo;
         headphoneProviders = reply.headphone_providers ?? ['bluez'];
+        historyLimits = reply.history_limits ?? [10, 25, 50, 100];
         localizeTab();
         installHook();
         scanText(document.documentElement);
@@ -278,6 +280,7 @@
         if (menu) renderMenu(menu.box, true);
       }
       if (key === 'headphone_provider') menu?.refreshHeadphones?.();
+      if (key === 'history_limit') menu?.refreshHistory?.();
       if (menu && announce) menu.status.textContent = translate('saved');
     } catch {
       if (menu && announce) menu.status.textContent = translate('error');
@@ -326,6 +329,9 @@
     .fc-position button { min-width:0; min-height:3.15rem; font-size:1.25rem; }
     .fc-language { width:100%; }
     .fc-language button { flex:1 1 auto; }
+    .fc-history-entry { align-items:baseline; font-variant-numeric:tabular-nums; }
+    .fc-history-entry time { display:block; }
+    .fc-history-entry time + time { color:var(--fc-detail); }
     .fc-status { color:var(--fc-detail); margin:.45rem .8rem 0; min-height:1.4em; font-size:.8rem; }
     @media (prefers-contrast: more) { .fc-settings { --fc-line:#818b99; --fc-detail:#eff3f8; } }
   `;
@@ -350,9 +356,13 @@
       return;
     }
 
-    function group(title) {
+    const settingsPage = el('div', '');
+    const historyPage = el('div', '');
+    historyPage.hidden = true;
+
+    function group(title, page = settingsPage) {
       const card = el('div', 'fc-group');
-      root.append(el('h3', '', title), card);
+      page.append(el('h3', '', title), card);
       return card;
     }
 
@@ -381,7 +391,7 @@
       heading.append(image);
     }
     heading.append(document.createTextNode(translate('title')));
-    root.append(heading);
+    settingsPage.append(heading);
     const details = group(translate('details'));
     const readings = {};
     for (const key of ['protocol', 'contract_power', 'battery_power']) {
@@ -570,12 +580,147 @@
     }
     languageRow.append(languageOptions);
     languageGroup.append(languageRow);
-    root.append(status);
+
+    function action(key, handler) {
+      const button = el('button', '', translate(key));
+      button.type = 'button';
+      button.addEventListener('click', handler);
+      return button;
+    }
+
+    const historyGroup = group(translate('history_title'));
+    toggle(historyGroup, 'record_history');
+    const historyLink = el('div', 'fc-row fc-options');
+    const openHistory = action('history_open', () => showHistory(true));
+    historyLink.append(openHistory);
+    historyGroup.append(historyLink);
+    rows.push(() => { historyLink.hidden = !preferences.record_history; });
+
+    const nav = el('div', 'fc-row fc-options');
+    const back = action('history_back', () => showHistory(false));
+    nav.append(back);
+    historyPage.append(nav, el('h2', '', translate('history_title')));
+    const controls = el('div', 'fc-group');
+    const limits = el('div', 'fc-row fc-options');
+    limits.setAttribute('role', 'group');
+    limits.setAttribute('aria-label', translate('history_limit'));
+    limits.append(el('span', 'fc-copy', translate('history_limit')));
+    for (const count of historyLimits) {
+      const button = el('button', '', numbers.format(count));
+      button.type = 'button';
+      button.addEventListener('click', () => void changeSetting('history_limit', count));
+      rows.push(() => button.setAttribute('aria-pressed', String(preferences.history_limit === count)));
+      limits.append(button);
+    }
+    const clearRow = el('div', 'fc-row fc-options');
+    const clearButton = action('history_clear', () => {
+      confirmRow.hidden = false;
+      cancelClear.focus();
+    });
+    clearRow.append(clearButton);
+    const confirmRow = el('div', 'fc-row fc-options');
+    confirmRow.hidden = true;
+    const cancelClear = action('history_cancel', () => {
+      confirmRow.hidden = true;
+      clearButton.focus();
+    });
+    const confirmClear = action('history_clear', () => void refreshHistory('clear_history'));
+    confirmRow.append(el('span', 'fc-copy', translate('history_confirm')), cancelClear, confirmClear);
+    controls.append(limits, clearRow, confirmRow);
+    historyPage.append(controls);
+    const records = group(translate('history_records'), historyPage);
+    const dates = new Intl.DateTimeFormat(language(), {
+      calendar: 'gregory', year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+    });
+    const units = ['day', 'hour', 'minute', 'second'].map((unit, index) => [
+      [86400, 3600, 60, 1][index],
+      new Intl.NumberFormat(language(), { style: 'unit', unit, unitDisplay: 'short' }),
+    ]);
+    let historyTimer;
+    let historyRequest = 0;
+    let clearing = false;
+    let previousHistory;
+
+    function showHistory(open) {
+      settingsPage.hidden = open;
+      historyPage.hidden = !open;
+      confirmRow.hidden = true;
+      status.textContent = '';
+      if (open) {
+        back.focus();
+        void refreshHistory();
+      } else {
+        clearTimeout(historyTimer);
+        historyRequest++;
+        openHistory.focus();
+      }
+    }
+
+    function showRecords(sessions) {
+      const snapshot = JSON.stringify(sessions);
+      if (snapshot === previousHistory) return;
+      previousHistory = snapshot;
+      records.replaceChildren();
+      if (!sessions.length) records.append(el('div', 'fc-row', translate('history_empty')));
+      for (const { started, ended, seconds } of sessions) {
+        const row = el('div', 'fc-row fc-history-entry');
+        const interval = el('div', 'fc-copy');
+        for (const [label, timestamp] of [['history_start', started], ['history_end', ended]]) {
+          const date = new Date(timestamp * 1000);
+          const time = el('time', '', translate(label).replace('{time}', dates.format(date)));
+          time.dateTime = date.toISOString();
+          interval.append(time);
+        }
+        let remainder = seconds;
+        const parts = [];
+        for (const [divisor, format] of units) {
+          const count = Math.floor(remainder / divisor);
+          if (count || (divisor === 1 && !parts.length)) parts.push(format.format(count));
+          remainder %= divisor;
+        }
+        row.append(interval, el('span', 'fc-reading', parts.join(' ')));
+        records.append(row);
+      }
+    }
+
+    async function refreshHistory(method = 'history') {
+      if (clearing || !active() || !root.isConnected || historyPage.hidden) return;
+      clearTimeout(historyTimer);
+      const request = ++historyRequest;
+      clearing = method === 'clear_history';
+      confirmClear.disabled = clearing;
+      back.disabled = clearing;
+      try {
+        const reply = await loader.call(id, method, null);
+        if (!Array.isArray(reply?.sessions)) throw new Error('History unavailable');
+        if (request === historyRequest) {
+          showRecords(reply.sessions);
+          if (clearing) {
+            confirmRow.hidden = true;
+            clearButton.focus();
+            status.textContent = translate('history_cleared');
+          }
+        }
+      } catch {
+        if (request === historyRequest) status.textContent = translate('history_error');
+      } finally {
+        clearing = false;
+        confirmClear.disabled = false;
+        back.disabled = false;
+        if (active() && root.isConnected && !historyPage.hidden && request === historyRequest) {
+          historyTimer = setTimeout(refreshHistory, 3000);
+        }
+      }
+    }
+
+    root.append(settingsPage, historyPage, status);
     box.replaceChildren(root);
     menu = {
       box,
       status,
       refreshHeadphones,
+      refreshHistory,
       update() {
         for (const row of rows) row();
       },

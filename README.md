@@ -14,7 +14,7 @@ Steam Frame 的 Framey 插件。插线后在头显内显示已确认的 USB PD �
 2. 把下面的插件 ZIP 下载地址粘贴到输入框，点击 **Install**。
 
    ```text
-   https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases/download/v0.8.0/SteamFrame-ChargeProtocol-v0.8.0.zip
+   https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases/download/v0.9.0/SteamFrame-ChargeProtocol-v0.9.0.zip
    ```
 
 3. 安装成功后，在 Framey 中打开 **充电协议**。要安装其他版本，在 [Releases](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases) 复制对应插件 ZIP 的下载地址。
@@ -28,6 +28,12 @@ Steam Frame 的 Framey 插件。插线后在头显内显示已确认的 USB PD �
 「蓝牙电量来源」默认是 **系统蓝牙**，无需配置。详情页读取 SteamOS 的 BlueZ 服务已上报的蓝牙音频设备电量。设备上报一个百分比时就显示一个，BlueZ 上报独立部件时则显示对应部件。手柄不在读取范围内。
 
 小米 Air 4 SE 用户可以在菜单里手动选择 **小米 Air 4 SE 分项**，通过已连接耳机的配件服务查询左右耳和充电盒。充电盒通常在开盖时回应。某项暂时没回报时，分项模式保留本次运行的上次读数，并显示它是几秒前读到的。其他型号的贡献者可参考 [耳机读取扩展接口](docs/headphone-providers.md)。
+
+## 供电记录
+
+在插件底部打开 **记录电池**，再选择 **查看记录**。从下一次接入 USB 电源开始计时，确认断开后保存插入时间、断开时间和总时长。记录按最近完成排序，默认保留 25 条，可改为 10、50 或 100 条，也可清除。已完成的记录保存在头显本地。
+
+充电宝和墙充都会记录。电池充满后只要 USB 电源仍然接通，就继续计时。插件需要观察到插入和断开才能保存一条完整记录。
 
 ## 开发与兼容性
 
@@ -44,11 +50,13 @@ python scripts/build_zip.py
 
 A Framey plugin for Steam Frame that shows the negotiated USB PD/PPS contract in VR, with battery-side power in the details panel. Controls for the slow-charger dialog, its sound, and charging-stop notifications are independent.
 
-**Install in the headset.** Open **Framey → Settings**, paste the [direct plugin ZIP URL](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases/download/v0.8.0/SteamFrame-ChargeProtocol-v0.8.0.zip), and select **Install**. Then open **Charging Protocol** in Framey. For another version, copy its plugin ZIP URL from [Releases](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases).
+**Install in the headset.** Open **Framey → Settings**, paste the [direct plugin ZIP URL](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases/download/v0.9.0/SteamFrame-ChargeProtocol-v0.9.0.zip), and select **Install**. Then open **Charging Protocol** in Framey. For another version, copy its plugin ZIP URL from [Releases](https://github.com/SgZincanya/SteamFrame-ChargeProtocol/releases).
 
 You can also download the ZIP and select it with **Add plugin** in the desktop [Framey App](https://github.com/chaosfox26/framey-app). Framey App restarts SteamVR if it is running.
 
 The panel supports Simplified Chinese, Traditional Chinese, English, Japanese, and Korean. System Bluetooth battery reporting is the default and requires no setup. The Xiaomi Air 4 SE component reader is opt-in and shows the age of each cached reading in seconds. See the [provider interface](docs/headphone-providers.md) to add support for another device.
+
+Enable **Log battery use** at the bottom of the plugin, then select **View history**. The plugin records both ends of an observed USB power connection and the elapsed time, even if charging pauses while connected. Power banks and wall chargers both count. Completed sessions stay on the headset. You can set how many to keep or clear them from the history page.
 
 ## 授权与参考 · License and references
 

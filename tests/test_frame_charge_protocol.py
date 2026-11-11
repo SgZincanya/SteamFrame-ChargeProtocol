@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from charging import ChargingSample, read_charging, read_details
 from bluetooth import AUDIO_PROFILES, BATTERY, DEVICE, audio_batteries
 from headphones import Air4Reader, FAST_CONNECT, battery_report, connected_air4
+import history
 from overlay import FULL_TEXTURES, OpenVROverlay, ProtocolNotice, STOPPED, StopAudio, StopDetector, TEXTURES
 from preferences import DEFAULTS, LOCALES, load, save
 from texture import contract_label
@@ -248,6 +249,40 @@ class ChargingTests(unittest.TestCase):
         data = read_details(self.daemon, self.power, self.typec)
         self.assertIsNone(data["contract_watts"])
         self.assertEqual(data["battery_watts"], -4.4)
+
+
+class HistoryTests(unittest.TestCase):
+    def test_only_observed_sessions_are_saved(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "history.sqlite3"
+            recorder = history.Recorder(path)
+            settings = {**DEFAULTS, "record_history": True}
+            with patch("history.time.time", side_effect=[10, 20, 40, 50, 90]), \
+                 patch("history.elapsed_clock", side_effect=[10, 20, 40, 50, 85]):
+                for state in (True, True, False, False, True, True, False, None, False, False):
+                    recorder.update(state, settings)
+            self.assertEqual(history.sessions(25, path), [{"started": 40, "ended": 90, "seconds": 45}])
+            recorder.update(True, settings)
+            recorder.update(True, settings)
+            recorder.update(True, DEFAULTS)
+            recorder.update(False, settings)
+            recorder.update(False, settings)
+            self.assertEqual(len(history.sessions(25, path)), 1)
+
+    def test_limit_keeps_newest_and_clear_persists(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "history.sqlite3"
+            recorder = history.Recorder(path)
+            settings = {**DEFAULTS, "record_history": True, "history_limit": 10}
+            with patch("history.time.time", side_effect=range(25)), \
+                 patch("history.elapsed_clock", side_effect=range(25)):
+                for state in [False, False] + [True, True, False, False] * 12:
+                    recorder.update(state, settings)
+            self.assertEqual([row["started"] for row in history.sessions(100, path)], list(range(23, 3, -2)))
+            history.prune(3, path)
+            self.assertEqual([row["started"] for row in history.sessions(100, path)], [23, 21, 19])
+            history.clear(path)
+            self.assertEqual(history.sessions(100, path), [])
 
 
 class OverlayTests(unittest.TestCase):
