@@ -10,7 +10,7 @@
     "details": "充电详情", "protocol": "当前协议", "contract_power": "协商功率", "battery_power": "电池净功率", "disconnected": "未接电",
     "earbud_left": "左耳", "earbud_right": "右耳", "earbud_case": "充电盒",
     "earbud_stale": "上次读数", "earbud_read_at": "{time}读取", "earbud_disconnected": "未连接",
-    "headphone_source": "蓝牙电量来源", "headphone_bluez": "系统蓝牙", "headphone_air4-se": "小米 Air 4 SE 分项",
+    "headphone_source": "蓝牙电量来源", "headphone_bluez": "系统蓝牙", "headphone_empty": "暂未读到蓝牙耳机电量",
     "stopped": "停止充电", "stop_popup": "显示停止充电浮层", "stop_sound": "播放停止充电提示音",
     "language": "语言", "auto": "跟随 Steam", "loading": "正在加载设置…", "saved": "已保存", "error": "保存失败，请重试"
   },
@@ -25,7 +25,7 @@
     "details": "充電詳細資訊", "protocol": "目前協定", "contract_power": "協商功率", "battery_power": "電池淨功率", "disconnected": "未接電",
     "earbud_left": "左耳", "earbud_right": "右耳", "earbud_case": "充電盒",
     "earbud_stale": "上次讀數", "earbud_read_at": "{time}讀取", "earbud_disconnected": "未連線",
-    "headphone_source": "藍牙電量來源", "headphone_bluez": "系統藍牙", "headphone_air4-se": "小米 Air 4 SE 分項",
+    "headphone_source": "藍牙電量來源", "headphone_bluez": "系統藍牙", "headphone_empty": "暫未讀到藍牙耳機電量",
     "stopped": "停止充電", "stop_popup": "顯示停止充電浮層", "stop_sound": "播放停止充電提示音",
     "language": "語言", "auto": "跟隨 Steam", "loading": "正在載入設定…", "saved": "已儲存", "error": "儲存失敗，請再試一次"
   },
@@ -40,7 +40,7 @@
     "details": "Charging Details", "protocol": "Current protocol", "contract_power": "Negotiated power", "battery_power": "Net battery power", "disconnected": "Unplugged",
     "earbud_left": "Left earbud", "earbud_right": "Right earbud", "earbud_case": "Charging case",
     "earbud_stale": "Last reading", "earbud_read_at": "Read {time}", "earbud_disconnected": "Disconnected",
-    "headphone_source": "Bluetooth Battery Source", "headphone_bluez": "System Bluetooth", "headphone_air4-se": "Xiaomi Air 4 SE components",
+    "headphone_source": "Bluetooth Battery Source", "headphone_bluez": "System Bluetooth", "headphone_empty": "No Bluetooth headphone battery reading available",
     "stopped": "Charging stopped", "stop_popup": "Show charging stopped overlay", "stop_sound": "Play charging stopped sound",
     "language": "Language", "auto": "Follow Steam", "loading": "Loading settings…", "saved": "Saved", "error": "Could not save. Try again."
   },
@@ -55,7 +55,7 @@
     "details": "充電の詳細", "protocol": "現在のプロトコル", "contract_power": "交渉電力", "battery_power": "バッテリーの正味電力", "disconnected": "電源未接続",
     "earbud_left": "左イヤホン", "earbud_right": "右イヤホン", "earbud_case": "充電ケース",
     "earbud_stale": "前回の取得値", "earbud_read_at": "{time}に取得", "earbud_disconnected": "未接続",
-    "headphone_source": "Bluetooth バッテリー情報の取得元", "headphone_bluez": "システムの Bluetooth", "headphone_air4-se": "Xiaomi Air 4 SE の個別表示",
+    "headphone_source": "Bluetooth バッテリー情報の取得元", "headphone_bluez": "システムの Bluetooth", "headphone_empty": "Bluetooth イヤホンのバッテリー情報を取得できません",
     "stopped": "充電が停止しました", "stop_popup": "充電停止を表示", "stop_sound": "充電停止の通知音を鳴らす",
     "language": "言語", "auto": "Steam に合わせる", "loading": "設定を読み込み中…", "saved": "保存しました", "error": "保存できませんでした。もう一度お試しください。"
   },
@@ -70,7 +70,7 @@
     "details": "충전 상세 정보", "protocol": "현재 프로토콜", "contract_power": "협상 전력", "battery_power": "배터리 순전력", "disconnected": "전원 연결 안 됨",
     "earbud_left": "왼쪽 이어버드", "earbud_right": "오른쪽 이어버드", "earbud_case": "충전 케이스",
     "earbud_stale": "마지막으로 읽은 값", "earbud_read_at": "{time} 읽음", "earbud_disconnected": "연결 안 됨",
-    "headphone_source": "Bluetooth 배터리 정보 출처", "headphone_bluez": "시스템 Bluetooth", "headphone_air4-se": "Xiaomi Air 4 SE 개별 표시",
+    "headphone_source": "Bluetooth 배터리 정보 출처", "headphone_bluez": "시스템 Bluetooth", "headphone_empty": "Bluetooth 이어폰의 배터리 정보를 읽을 수 없습니다",
     "stopped": "충전이 중지되었습니다", "stop_popup": "충전 중지 표시", "stop_sound": "충전 중지 알림음 재생",
     "language": "언어", "auto": "Steam 설정 따르기", "loading": "설정을 불러오는 중…", "saved": "저장됨", "error": "저장하지 못했습니다. 다시 시도해 주세요."
   }

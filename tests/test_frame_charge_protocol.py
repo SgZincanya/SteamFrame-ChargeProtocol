@@ -9,7 +9,6 @@ from unittest.mock import Mock, patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from charging import ChargingSample, read_charging, read_details
 from bluetooth import AUDIO_PROFILES, BATTERY, DEVICE, audio_batteries
-from headphones import Air4Reader, FAST_CONNECT, battery_report, connected_air4
 import history
 from overlay import FULL_TEXTURES, OpenVROverlay, ProtocolNotice, STOPPED, StopAudio, StopDetector, TEXTURES
 from preferences import DEFAULTS, LOCALES, load, save
@@ -339,38 +338,6 @@ class HeadphoneTests(unittest.TestCase):
         }
         self.assertEqual(audio_batteries(objects), [{"name": "Example buds", "connected": True, "percent": 75, "left": 60}])
         self.assertEqual(DEFAULTS["headphone_provider"], "bluez")
-    def test_only_connected_air4_se(self):
-        headset = {"Name": "小米 Air4 SE", "Connected": True, "UUIDs": [FAST_CONNECT]}
-        disconnected = {**headset, "Connected": False}
-        other = {**headset, "Name": "Controller"}
-        self.assertEqual(connected_air4([disconnected, other, headset]), headset)
-        self.assertIsNone(connected_air4([disconnected, other]))
-
-    def test_read_three_independent_values_and_missing_case(self):
-        frame = bytearray.fromhex("fe dc ba 00 02 00 07 00 01 04 07 e4 54 39 ef")
-        buffer = bytearray(b"other data") + frame[:10]
-        self.assertIsNone(battery_report(buffer))
-        buffer.extend(frame[10:])
-        self.assertEqual(battery_report(buffer), {"left": 100, "right": 84, "case": 57})
-        frame[-2] = 0xFF
-        self.assertEqual(battery_report(frame), {"left": 100, "right": 84, "case": None})
-
-    def test_cache_survives_missing_fields_and_disconnect_but_not_device_change(self):
-        reader = Air4Reader()
-        headset = {"Name": "小米 Air4 SE", "Address": "first"}
-        with patch("headphones.paired_device", side_effect=[headset, headset, None, {**headset, "Address": "second"}]), \
-             patch("headphones.service_channel", return_value=11), \
-             patch("headphones.query", side_effect=[{"left": 100, "right": 80, "case": 62}, {"left": 99, "case": None}, None]), \
-             patch("headphones.time.monotonic", side_effect=[10, 22, 25, 30]):
-            self.assertEqual(reader.read()["age_seconds"], {})
-            refreshed = reader.read()
-            self.assertEqual((refreshed["left"], refreshed["case"], refreshed["stale"]), (99, 62, ["right", "case"]))
-            self.assertEqual(refreshed["age_seconds"], {"right": 12, "case": 12})
-            disconnected = reader.read()
-            self.assertFalse(disconnected["connected"])
-            self.assertEqual(disconnected["stale"], ["left", "right", "case"])
-            self.assertEqual(disconnected["age_seconds"], {"left": 3, "right": 15, "case": 15})
-            self.assertIsNone(reader.read()["case"])
 
 
 class HeadphoneSourceTests(unittest.TestCase):
@@ -380,22 +347,39 @@ class HeadphoneSourceTests(unittest.TestCase):
         self.backend = module_from_spec(spec)
         spec.loader.exec_module(self.backend)
 
-    def test_default_never_queries_a_vendor_service(self):
-        device = {"name": "System audio", "connected": True, "percent": 85}
-        with patch.object(self.backend.preferences, "load", return_value=DEFAULTS), \
-             patch.object(self.backend.HEADPHONE_PROVIDERS["air4-se"], "read") as vendor, \
-             patch.object(self.backend.bluetooth, "read_objects", return_value={}), \
-             patch.object(self.backend.bluetooth, "audio_batteries", return_value=[device]):
-            self.assertEqual(self.backend.read_headphones(), [device])
-            vendor.assert_not_called()
+    def test_provider_is_only_loaded_when_selected(self):
+        system = {"name": "System audio", "connected": True, "percent": 85}
+        components = {"name": "Example buds", "connected": True, "left": 82, "right": 87, "case": 70}
+        with tempfile.TemporaryDirectory() as folder:
+            provider_dir = Path(folder)
+            provider = provider_dir / "example-buds.py"
+            provider.write_text(f"def read():\n    return {components!r}\n", encoding="utf-8")
+            with patch.object(self.backend, "PROVIDER_DIR", provider_dir), \
+                 patch.object(self.backend.preferences, "load", return_value=DEFAULTS.copy()) as load_settings, \
+                 patch.object(self.backend.bluetooth, "read_objects", return_value={}), \
+                 patch.object(self.backend.bluetooth, "audio_batteries", return_value=[system]) as bluez:
+                self.assertEqual(self.backend.provider_ids(), ["bluez", "example-buds"])
+                self.assertEqual(self.backend.read_headphones(), [system])
+                self.assertEqual(self.backend.load_provider.cache_info().currsize, 0)
+                load_settings.return_value["headphone_provider"] = "example-buds"
+                self.assertEqual(self.backend.read_headphones(), [components])
+                self.assertEqual(bluez.call_count, 1)
+                provider.unlink()
+                self.assertEqual(self.backend.read_headphones(), [system])
 
-    def test_opted_in_reader_returns_components(self):
-        device = {"name": "Air 4 SE", "connected": True, "left": 82, "right": 87, "case": 70}
-        with patch.object(self.backend.preferences, "load", return_value={**DEFAULTS, "headphone_provider": "air4-se"}), \
-             patch.object(self.backend.HEADPHONE_PROVIDERS["air4-se"], "read", return_value=device), \
-             patch.object(self.backend.bluetooth, "read_objects") as bluez:
-            self.assertEqual(self.backend.read_headphones(), [device])
-            bluez.assert_not_called()
+    def test_invalid_or_empty_provider_falls_back_to_bluez(self):
+        system = {"name": "System audio", "connected": True, "percent": 85}
+        with tempfile.TemporaryDirectory() as folder:
+            provider_dir = Path(folder)
+            (provider_dir / "empty.py").write_text("def read():\n    return {'left': None}\n", encoding="utf-8")
+            (provider_dir / "broken.py").write_text("def read():\n    raise RuntimeError('failed')\n", encoding="utf-8")
+            with patch.object(self.backend, "PROVIDER_DIR", provider_dir), \
+                 patch.object(self.backend.preferences, "load") as load_settings, \
+                 patch.object(self.backend.bluetooth, "read_objects", return_value={}), \
+                 patch.object(self.backend.bluetooth, "audio_batteries", return_value=[system]):
+                for selected in ("empty", "broken"):
+                    load_settings.return_value = {**DEFAULTS, "headphone_provider": selected}
+                    self.assertEqual(self.backend.read_headphones(), [system])
 
 
 if __name__ == "__main__":

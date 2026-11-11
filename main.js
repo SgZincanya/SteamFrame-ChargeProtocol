@@ -441,8 +441,9 @@
       if (snapshot === previousDevices) return;
       previousDevices = snapshot;
       clearTimeout(ageTimer);
-      headphones.hidden = devices.length === 0;
+      headphones.hidden = false;
       headphones.replaceChildren();
+      if (!devices.length) headphones.append(el('div', 'fc-row fc-detail', translate('headphone_empty')));
       const ageLabels = [];
       const receivedAt = performance.now();
       for (const device of devices) {
@@ -495,7 +496,7 @@
       }
     }
 
-    const source = group(translate('headphone_source'));
+    const source = headphoneProviders.length > 1 ? group(translate('headphone_source')) : null;
     const sourceRow = el('div', 'fc-row');
     const sourceOptions = el('div', 'fc-options');
     sourceOptions.setAttribute('role', 'group');
@@ -513,7 +514,7 @@
       sourceOptions.append(button);
     }
     sourceRow.append(sourceOptions);
-    source.append(sourceRow);
+    source?.append(sourceRow);
     const system = group(translate('system'));
     toggle(system, 'hide_slow_popup');
     toggle(system, 'mute_slow_sound');

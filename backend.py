@@ -2,6 +2,7 @@
 
 import asyncio
 import base64
+from functools import lru_cache
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 import sys
@@ -14,16 +15,13 @@ preferences_spec.loader.exec_module(preferences)
 charging_spec = spec_from_file_location("frame_charge_readings", WORKER.with_name("charging.py"))
 charging = module_from_spec(charging_spec)
 charging_spec.loader.exec_module(charging)
-headphones_spec = spec_from_file_location("frame_charge_headphones", WORKER.with_name("headphones.py"))
-headphones = module_from_spec(headphones_spec)
-headphones_spec.loader.exec_module(headphones)
 bluetooth_spec = spec_from_file_location("frame_charge_bluetooth", WORKER.with_name("bluetooth.py"))
 bluetooth = module_from_spec(bluetooth_spec)
 bluetooth_spec.loader.exec_module(bluetooth)
 history_spec = spec_from_file_location("frame_charge_history", WORKER.with_name("history.py"))
 history = module_from_spec(history_spec)
 history_spec.loader.exec_module(history)
-HEADPHONE_PROVIDERS = {"air4-se": headphones.Air4Reader()}
+PROVIDER_DIR = preferences.PATH.parent / "frame-charge-protocol-providers"
 headphones_lock = asyncio.Lock()
 logo = "data:image/svg+xml;base64," + base64.b64encode(WORKER.with_name("logo.svg").read_bytes()).decode("ascii")
 supervisor = None
@@ -63,12 +61,35 @@ async def supervise():
             await asyncio.sleep(3)
 
 
+def provider_ids():
+    return ["bluez", *sorted(
+        path.stem for path in PROVIDER_DIR.glob("*.py")
+        if path.is_file() and path.stem != "bluez" and preferences.valid("headphone_provider", path.stem)
+    )]
+
+
+@lru_cache(maxsize=8)
+def load_provider(path):
+    spec = spec_from_file_location(f"frame_charge_provider_{path.stem}", path)
+    module = module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.read
+
+
 def read_headphones():
-    provider = HEADPHONE_PROVIDERS.get(preferences.load()["headphone_provider"])
-    if provider is not None:
-        device = provider.read()
-        if device is not None:
-            return [device]
+    selected = preferences.load()["headphone_provider"]
+    if selected != "bluez":
+        path = PROVIDER_DIR / f"{selected}.py"
+        if path.is_file():
+            try:
+                device = load_provider(path)()
+                if isinstance(device, dict) and any(
+                    type(device.get(part)) is int and 0 <= device[part] <= 100
+                    for part in ("percent", "left", "right", "case")
+                ):
+                    return [device]
+            except Exception as error:
+                print(f"[frame-charge-protocol] headphone provider {selected}: {error}", file=sys.stderr)
     return bluetooth.audio_batteries(bluetooth.read_objects())
 
 
@@ -78,7 +99,7 @@ async def call(method, arg):
         if supervisor is None or supervisor.done():
             supervisor = asyncio.create_task(supervise())
         return {"ok": True, "settings": preferences.load(), "locales": preferences.LOCALES, "logo": logo,
-                "headphone_providers": ["bluez", *HEADPHONE_PROVIDERS], "history_limits": preferences.HISTORY_LIMITS}
+                "headphone_providers": provider_ids(), "history_limits": preferences.HISTORY_LIMITS}
     if method == "save" and isinstance(arg, dict):
         key = arg.get("key")
         settings = preferences.save(key, arg.get("value"))
